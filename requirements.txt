@@ -12,3 +12,4 @@ setuptools<81
 httpx==0.23.3
 jupyterlab<4.0
 dvc-s3
+dvc[s3]==3.51.2
