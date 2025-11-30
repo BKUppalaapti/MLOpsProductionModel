@@ -1,0 +1,131 @@
+schema: '2.0'
+stages:
+  data_ingestion:
+    cmd: python -m src.data_ingestion
+    deps:
+    - path: src/data_ingestion.py
+      hash: md5
+      md5: 6416db18a69025d037e5cfa1e6b0979d
+      size: 5007
+    outs:
+    - path: artifacts/raw/tweet_emotions_test.csv
+      hash: md5
+      md5: 55f8691847c8719338e157f17475e26e
+      size: 163459
+    - path: artifacts/raw/tweet_emotions_train.csv
+      hash: md5
+      md5: 16b51ca4de3b016c3c2631d27d3da13a
+      size: 661055
+  data_preprocessing:
+    cmd: python -m src.data_preprocessing
+    deps:
+    - path: artifacts/raw/tweet_emotions_test.csv
+      hash: md5
+      md5: 55f8691847c8719338e157f17475e26e
+      size: 163459
+    - path: artifacts/raw/tweet_emotions_train.csv
+      hash: md5
+      md5: 16b51ca4de3b016c3c2631d27d3da13a
+      size: 661055
+    - path: src/data_preprocessing.py
+      hash: md5
+      md5: c509b99da7958a8e0977c3747bc180c1
+      size: 2504
+    outs:
+    - path: artifacts/processed/tweet_emotions_test.csv
+      hash: md5
+      md5: a4e678db6a9b16f7672ce30fa07881ce
+      size: 151756
+    - path: artifacts/processed/tweet_emotions_train.csv
+      hash: md5
+      md5: 65a8ffa3707f206a2a0265344eafdff2
+      size: 612051
+  feature_engineering:
+    cmd: python -m src.feature_engineering
+    deps:
+    - path: artifacts/processed/tweet_emotions_test.csv
+      hash: md5
+      md5: a4e678db6a9b16f7672ce30fa07881ce
+      size: 151756
+    - path: artifacts/processed/tweet_emotions_train.csv
+      hash: md5
+      md5: 65a8ffa3707f206a2a0265344eafdff2
+      size: 612051
+    - path: src/feature_engineering.py
+      hash: md5
+      md5: e0061e03627166bea5f77874c6762867
+      size: 3261
+    outs:
+    - path: artifacts/features/tweet_emotions_test_features.csv
+      hash: md5
+      md5: 230b37dfeaf21fc4b0c3a213c9d3dfa5
+      size: 41865985
+    - path: artifacts/features/tweet_emotions_train_features.csv
+      hash: md5
+      md5: 2e94ab3751e58a2da3eed7b705ec1546
+      size: 167410875
+  model_building:
+    cmd: python -m src.model_building
+    deps:
+    - path: artifacts/features/tweet_emotions_test_features.csv
+      hash: md5
+      md5: 230b37dfeaf21fc4b0c3a213c9d3dfa5
+      size: 41865985
+    - path: artifacts/features/tweet_emotions_train_features.csv
+      hash: md5
+      md5: 2e94ab3751e58a2da3eed7b705ec1546
+      size: 167410875
+    - path: src/model_building.py
+      hash: md5
+      md5: 79c47f4ad591df67ceeb1f3fb6795768
+      size: 5452
+    params:
+      params.yaml:
+        logreg.C: 1.0
+        logreg.max_iter: 200
+    outs:
+    - path: artifacts/metrics/logreg_eval_metrics.json
+      hash: md5
+      md5: fb50d472d5d379c9d5ba8bbd0aae16f6
+      size: 82
+    - path: artifacts/metrics/logreg_train_metrics.json
+      hash: md5
+      md5: 5bd8c8c915c36ac61f50bb241a2340f8
+      size: 92
+    - path: artifacts/models/logreg_model.pkl
+      hash: md5
+      md5: 0f3417fd0c4366fa2d544d4c472750f4
+      size: 85919
+  model_evaluation:
+    cmd: python -m src.model_evaluation
+    deps:
+    - path: artifacts/features/tweet_emotions_test_features.csv
+      hash: md5
+      md5: 230b37dfeaf21fc4b0c3a213c9d3dfa5
+      size: 41865985
+    - path: artifacts/features/tweet_emotions_train_features.csv
+      hash: md5
+      md5: 2e94ab3751e58a2da3eed7b705ec1546
+      size: 167410875
+    - path: src/model_evaluation.py
+      hash: md5
+      md5: 5605352e737b355a6a4e982c445d1664
+      size: 4940
+    params:
+      params.yaml:
+        gb.learning_rate: 0.1
+        gb.max_depth: 3
+        gb.n_estimators: 100
+    outs:
+    - path: artifacts/metrics/gb_eval_metrics.json
+      hash: md5
+      md5: 2eb7454c7d1aed7a853af90ac9c4a29a
+      size: 122
+    - path: artifacts/metrics/gb_train_metrics.json
+      hash: md5
+      md5: ccf37411736878de562572981f4ac75f
+      size: 120
+    - path: artifacts/models/gb_model.pkl
+      hash: md5
+      md5: d49cfc390cabfce335f42a361f31bfa5
+      size: 135306

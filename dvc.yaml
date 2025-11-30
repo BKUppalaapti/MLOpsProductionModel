@@ -1,0 +1,57 @@
+stages:
+  data_ingestion:
+    cmd: python -m src.data_ingestion
+    deps:
+      - src/data_ingestion.py
+    outs:
+      - artifacts/raw/tweet_emotions_train.csv
+      - artifacts/raw/tweet_emotions_test.csv
+
+  data_preprocessing:
+    cmd: python -m src.data_preprocessing
+    deps:
+      - src/data_preprocessing.py
+      - artifacts/raw/tweet_emotions_train.csv
+      - artifacts/raw/tweet_emotions_test.csv
+    outs:
+      - artifacts/processed/tweet_emotions_train.csv
+      - artifacts/processed/tweet_emotions_test.csv
+
+  feature_engineering:
+    cmd: python -m src.feature_engineering
+    deps:
+      - src/feature_engineering.py
+      - artifacts/processed/tweet_emotions_train.csv
+      - artifacts/processed/tweet_emotions_test.csv
+    outs:
+      - artifacts/features/tweet_emotions_train_features.csv
+      - artifacts/features/tweet_emotions_test_features.csv
+
+  model_building:
+    cmd: python -m src.model_building
+    deps:
+      - src/model_building.py
+      - artifacts/features/tweet_emotions_train_features.csv
+      - artifacts/features/tweet_emotions_test_features.csv
+    params:
+      - logreg.max_iter
+      - logreg.C
+    outs:
+      - artifacts/models/logreg_model.pkl
+      - artifacts/metrics/logreg_train_metrics.json
+      - artifacts/metrics/logreg_eval_metrics.json
+
+  model_evaluation:
+    cmd: python -m src.model_evaluation
+    deps:
+      - src/model_evaluation.py
+      - artifacts/features/tweet_emotions_train_features.csv
+      - artifacts/features/tweet_emotions_test_features.csv
+    params:
+      - gb.n_estimators
+      - gb.learning_rate
+      - gb.max_depth
+    outs:
+      - artifacts/models/gb_model.pkl
+      - artifacts/metrics/gb_train_metrics.json
+      - artifacts/metrics/gb_eval_metrics.json
