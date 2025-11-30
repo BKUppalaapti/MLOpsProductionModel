@@ -89,3 +89,16 @@ Typical workflow
 
 - Git push → code/configs to GitHub/DagsHub. 
 - DVC push → data/models/metrics to S3
+
+
+
+✅ Best Practice Workflow
+- Code release → push Git once, orchestrate with Airflow.
+- Daily runs → Airflow executes dvc repro with new data.
+- Artifact sync → Airflow runs dvc push so S3 has the new blobs.
+- Git commit optional → if you want to version daily runs, you can commit updated dvc.lock. But many teams skip this in production and just rely on S3 + experiment tracking.
+
+
+⚡ Two Modes of Operation
+- Research/Dev → commit dvc.lock daily to Git, so you can diff experiments.
+- Production → keep Git pinned, but still push artifacts daily to S3 for reproducibility and audit.
