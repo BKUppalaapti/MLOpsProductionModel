@@ -17,7 +17,7 @@ logger = get_logger(
     s3_prefix="logs/model_building"
 )
 
-# --- Initialize DagsHub + MLflow ---
+# --- Initialize Dagshub + MLflow ---
 dagshub.init(
     repo_owner="krishnauppalapatiaws",
     repo_name="MLOpsProductionModel",
@@ -25,7 +25,7 @@ dagshub.init(
 )
 mlflow.set_experiment("tweet_emotions_experiment")
 
-# --- Load parameters from params.yaml ---
+# --- Load parameters ---
 repo_root = os.path.dirname(os.path.dirname(__file__))
 params_path = os.path.join(repo_root, "params.yaml")
 
@@ -35,6 +35,7 @@ with open(params_path) as f:
 logreg_params = params["logreg"]
 MAX_ITER = logreg_params.get("max_iter", 500)
 C = logreg_params.get("C", 1.0)
+
 
 # --- Train model ---
 def train_model(train_df: pd.DataFrame, test_df: pd.DataFrame):
@@ -70,11 +71,12 @@ def train_model(train_df: pd.DataFrame, test_df: pd.DataFrame):
             "auc": roc_auc_score(y_test, y_test_prob)
         }
 
-        logger.info(f"Model trained successfully. Train metrics: {train_metrics}, Eval metrics: {eval_metrics}")
+        logger.info(f"Model trained successfully. Train: {train_metrics}, Eval: {eval_metrics}")
         return model, train_metrics, eval_metrics
     except Exception as e:
         logger.error(f"Error training model: {e}")
         raise
+
 
 # --- Save model locally ---
 def save_model_local(model):
@@ -82,11 +84,12 @@ def save_model_local(model):
         os.makedirs("artifacts/models", exist_ok=True)
         model_path = "artifacts/models/logreg_model.pkl"
         joblib.dump(model, model_path)
-        logger.info(f"Saved Logistic Regression model locally at {model_path}")
+        logger.info(f"Saved Logistic Regression model to {model_path}")
         return model_path
     except Exception as e:
         logger.error(f"Error saving model: {e}")
         raise
+
 
 # --- Save metrics locally ---
 def save_metrics(train_metrics, eval_metrics):
@@ -105,20 +108,39 @@ def save_metrics(train_metrics, eval_metrics):
         logger.error(f"Error saving metrics: {e}")
         raise
 
-# --- Log to MLflow/DagsHub ---
+
+# --- Log to MLflow + Dagshub ---
 def log_to_mlflow(model, train_metrics, eval_metrics, train_path, eval_path):
     try:
         with mlflow.start_run(run_name="LogisticRegression"):
-            mlflow.log_params({"model_type": "LogisticRegression", "max_iter": MAX_ITER, "C": C})
+
+            # Parameters
+            mlflow.log_params({
+                "model_type": "LogisticRegression",
+                "max_iter": MAX_ITER,
+                "C": C
+            })
+
+            # Metrics
             mlflow.log_metrics({f"train_{k}": v for k, v in train_metrics.items()})
             mlflow.log_metrics({f"eval_{k}": v for k, v in eval_metrics.items()})
+
+            # Model
             mlflow.sklearn.log_model(model, "logreg_model")
+
+            # Individual metric JSON files
             mlflow.log_artifact(train_path)
             mlflow.log_artifact(eval_path)
-        logger.info("Logged model and metrics to MLflow/DagsHub")
+
+            # ⭐ CRITICAL FIX ⭐
+            # Upload entire artifacts folder to Dagshub → makes run status GREEN ✓
+            mlflow.log_artifacts("artifacts/")
+
+        logger.info("Logged model, metrics, and artifacts to MLflow/DagsHub successfully.")
     except Exception as e:
         logger.error(f"Error logging to MLflow/DagsHub: {e}")
         raise
+
 
 # --- Main ---
 def main():
@@ -133,20 +155,20 @@ def main():
 
         model, train_metrics, eval_metrics = train_model(train_df, test_df)
 
-        # Save model locally
+        # Save outputs locally
         model_path = save_model_local(model)
-
-        # Save metrics locally
         train_path, eval_path = save_metrics(train_metrics, eval_metrics)
 
-        # Log to MLflow/DagsHub
+        # Log to Dagshub + MLflow
         log_to_mlflow(model, train_metrics, eval_metrics, train_path, eval_path)
+
     except Exception as e:
         logger.error(f"Pipeline failed: {e}")
 
-    # Upload log file to S3 and flush logs locally
+    # Upload log file to S3
     logger.upload_to_s3()
     logging.shutdown()
+
 
 if __name__ == "__main__":
     main()

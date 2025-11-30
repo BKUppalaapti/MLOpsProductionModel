@@ -60,32 +60,32 @@ try:
     clf.fit(X_train, y_train)
     logger.info("Gradient Boosting model trained successfully.")
 
-    # --- Evaluate on train set ---
+    # --- Train Metrics ---
     y_train_pred = clf.predict(X_train)
-    y_train_proba = clf.predict_proba(X_train)[:, 1] if hasattr(clf, "predict_proba") else None
+    y_train_proba = clf.predict_proba(X_train)[:, 1]
 
     train_metrics = {
         "accuracy": accuracy_score(y_train, y_train_pred),
         "precision": precision_score(y_train, y_train_pred, average="weighted"),
         "recall": recall_score(y_train, y_train_pred, average="weighted"),
-        "auc": roc_auc_score(y_train, y_train_proba) if y_train_proba is not None else None
+        "auc": roc_auc_score(y_train, y_train_proba)
     }
 
-    # --- Evaluate on test set ---
+    # --- Eval Metrics ---
     y_test_pred = clf.predict(X_test)
-    y_test_proba = clf.predict_proba(X_test)[:, 1] if hasattr(clf, "predict_proba") else None
+    y_test_proba = clf.predict_proba(X_test)[:, 1]
 
     eval_metrics = {
         "accuracy": accuracy_score(y_test, y_test_pred),
         "precision": precision_score(y_test, y_test_pred, average="weighted"),
         "recall": recall_score(y_test, y_test_pred, average="weighted"),
-        "auc": roc_auc_score(y_test, y_test_proba) if y_test_proba is not None else None
+        "auc": roc_auc_score(y_test, y_test_proba)
     }
 
-    logger.info(f"Train metrics: {train_metrics}")
-    logger.info(f"Eval metrics: {eval_metrics}")
+    logger.info(f"Train Metrics: {train_metrics}")
+    logger.info(f"Eval Metrics: {eval_metrics}")
 
-    # --- Save metrics locally for DVC ---
+    # --- Save metrics locally ---
     os.makedirs("artifacts/metrics", exist_ok=True)
     train_path = "artifacts/metrics/gb_train_metrics.json"
     eval_path = "artifacts/metrics/gb_eval_metrics.json"
@@ -95,17 +95,18 @@ try:
     with open(eval_path, "w") as f:
         json.dump(eval_metrics, f)
 
-    logger.info("Saved Gradient Boosting metrics locally for DVC tracking")
+    logger.info("Saved Gradient Boosting metrics locally.")
 
-    # --- Save model locally for DVC ---
+    # --- Save model locally ---
     os.makedirs("artifacts/models", exist_ok=True)
     model_out = "artifacts/models/gb_model.pkl"
     with open(model_out, "wb") as f:
         pickle.dump(clf, f)
     logger.info(f"Gradient Boosting model saved locally at {model_out}")
 
-    # --- Log + Register in MLflow/DagsHub ---
+    # --- Log to MLflow/Dagshub ---
     with mlflow.start_run(run_name="GradientBoosting"):
+
         # Log metrics
         mlflow.log_metrics({f"train_{k}": v for k, v in train_metrics.items()})
         mlflow.log_metrics({f"eval_{k}": v for k, v in eval_metrics.items()})
@@ -116,14 +117,18 @@ try:
         mlflow.log_param("max_depth", MAX_DEPTH)
         mlflow.log_param("model_type", "GradientBoostingClassifier")
 
-        # Log model artifact
+        # Log model
         mlflow.sklearn.log_model(clf, "gb_model")
 
-        # Log metrics artifacts
+        # Log individual metric files
         mlflow.log_artifact(train_path)
         mlflow.log_artifact(eval_path)
 
-        # Register model in MLflow Model Registry
+        # ⭐ CRITICAL FIX ⭐
+        # Ensures Dagshub marks run as SUCCESS ✓
+        mlflow.log_artifacts("artifacts/")
+
+        # Register model in MLflow Registry
         model_uri = f"runs:/{mlflow.active_run().info.run_id}/gb_model"
         result = mlflow.register_model(model_uri, "TweetSentimentModel")
 
@@ -132,6 +137,6 @@ try:
 except Exception as e:
     logger.error(f"Pipeline failed: {e}")
 
-# Upload log file to S3 and flush logs locally
+# Upload logs to S3 and close
 logger.upload_to_s3()
 logging.shutdown()
