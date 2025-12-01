@@ -10,6 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+
     - name: Checkout repo
       uses: actions/checkout@v4
       with:
@@ -40,9 +41,9 @@ jobs:
           -v "${{ github.workspace }}:/app" \
           mlops-clean
 
-    # ------------------------------
-    # Commit DVC changes back to Git
-    # ------------------------------
+    # -------------------------------------
+    # Commit DVC changes back to GitHub
+    # -------------------------------------
 
     - name: Configure Git
       run: |
@@ -66,4 +67,5 @@ jobs:
     - name: Push changes back to GitHub
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: git push origin main || echo "Nothing to push"
+      run: |
+        git push origin main || echo "Nothing to push"
