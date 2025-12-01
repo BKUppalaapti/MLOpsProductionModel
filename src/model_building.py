@@ -21,8 +21,7 @@ logger = get_logger(
 dagshub.init(
     repo_owner="krishnauppalapatiaws",
     repo_name="MLOpsProductionModel",
-    mlflow=True,
-    use_oauth=False
+    mlflow=True
 )
 
 mlflow.set_experiment("tweet_emotions_experiment")
