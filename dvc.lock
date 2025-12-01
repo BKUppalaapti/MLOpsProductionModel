@@ -58,22 +58,22 @@ stages:
     outs:
     - path: artifacts/features/tweet_emotions_test_features.csv
       hash: md5
-      md5: e308568cb86e58a8bdcb2c39f802f340
-      size: 41863817
+      md5: f45406d548abf6d04e06c74beb915594
+      size: 41863909
     - path: artifacts/features/tweet_emotions_train_features.csv
       hash: md5
-      md5: b03b9a7ff334adb0423ca686e215ddc6
+      md5: b9aa76888096832bee11541125373ba3
       size: 167402575
   model_building:
     cmd: python -m src.model_building
     deps:
     - path: artifacts/features/tweet_emotions_test_features.csv
       hash: md5
-      md5: e308568cb86e58a8bdcb2c39f802f340
-      size: 41863817
+      md5: f45406d548abf6d04e06c74beb915594
+      size: 41863909
     - path: artifacts/features/tweet_emotions_train_features.csv
       hash: md5
-      md5: b03b9a7ff334adb0423ca686e215ddc6
+      md5: b9aa76888096832bee11541125373ba3
       size: 167402575
     - path: src/model_building.py
       hash: md5
@@ -86,26 +86,26 @@ stages:
     outs:
     - path: artifacts/metrics/logreg_eval_metrics.json
       hash: md5
-      md5: db9bc1865c50cb29b5ffeb9087ea80f2
-      size: 92
+      md5: fb50d472d5d379c9d5ba8bbd0aae16f6
+      size: 82
     - path: artifacts/metrics/logreg_train_metrics.json
       hash: md5
-      md5: 5942708e7e67d3a218a4140b3e65f446
+      md5: 5bd8c8c915c36ac61f50bb241a2340f8
       size: 92
     - path: artifacts/models/logreg_model.pkl
       hash: md5
-      md5: 7717dc83d9e12d4587f4e1e525644f85
+      md5: e9b135c20e08e4d0ea9c94b0cf22d9fe
       size: 85919
   model_evaluation:
     cmd: python -m src.model_evaluation
     deps:
     - path: artifacts/features/tweet_emotions_test_features.csv
       hash: md5
-      md5: e308568cb86e58a8bdcb2c39f802f340
-      size: 41863817
+      md5: f45406d548abf6d04e06c74beb915594
+      size: 41863909
     - path: artifacts/features/tweet_emotions_train_features.csv
       hash: md5
-      md5: b03b9a7ff334adb0423ca686e215ddc6
+      md5: b9aa76888096832bee11541125373ba3
       size: 167402575
     - path: src/model_evaluation.py
       hash: md5
@@ -119,13 +119,13 @@ stages:
     outs:
     - path: artifacts/metrics/gb_eval_metrics.json
       hash: md5
-      md5: 5e83bcc2e83f36cdaa3af853472a22cd
+      md5: 2eb7454c7d1aed7a853af90ac9c4a29a
       size: 122
     - path: artifacts/metrics/gb_train_metrics.json
       hash: md5
-      md5: 974d510029bd511d635b4ecc119d0cea
-      size: 122
+      md5: ccf37411736878de562572981f4ac75f
+      size: 120
     - path: artifacts/models/gb_model.pkl
       hash: md5
-      md5: ba2edeceff82a8ab2c508004449a83ae
+      md5: 4e270107073bb75aca44c932d25d9bd9
       size: 135340
