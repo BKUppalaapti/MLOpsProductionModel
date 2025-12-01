@@ -17,23 +17,31 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean
 
 # --------------------------------------------------------
-# 3. Set working directory
+# 3. Install Python dependencies
 # --------------------------------------------------------
+
+# Copy only requirements first to leverage Docker caching
 WORKDIR /app
-
-# --------------------------------------------------------
-# 4. Install all dependencies from requirements.txt
-# --------------------------------------------------------
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+
+RUN pip install --no-cache-dir --upgrade pip \
+    && pip install --no-cache-dir -r requirements.txt
 
 # --------------------------------------------------------
-# 5. Copy the entire project
+# 4. Copy project files
 # --------------------------------------------------------
 COPY . .
 
 # --------------------------------------------------------
-# 6. Run DVC pipeline
+# 5. Avoid interactive DVC/MLflow logins in CI
 # --------------------------------------------------------
-CMD ["bash", "-c", "dvc remote default s3remote && dvc pull -v && dvc repro -v && dvc push -v"]
+ENV DAGSHUB_SKIP_HTTP_CLIENT_AUTH=true
 
+# --------------------------------------------------------
+# 6. Entrypoint: run full DVC lifecycle
+# --------------------------------------------------------
+CMD ["bash", "-c", \
+    "dvc remote default s3remote && \
+     dvc pull -v && \
+     dvc repro -v && \
+     dvc push -v" ]
