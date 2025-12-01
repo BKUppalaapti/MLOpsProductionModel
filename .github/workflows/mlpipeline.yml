@@ -66,8 +66,16 @@ jobs:
       run: |
         git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git
 
+    # FIX: stash before pulling
+    - name: Stash local changes
+      run: git stash || true
+
     - name: Pull latest changes to avoid conflicts
       run: git pull origin main --rebase || true
+
+    # FIX: restore local changes
+    - name: Apply stashed changes
+      run: git stash pop || true
 
     - name: Commit DVC updates
       run: |
