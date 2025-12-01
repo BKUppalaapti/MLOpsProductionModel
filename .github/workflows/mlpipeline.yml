@@ -11,19 +11,29 @@ jobs:
 
     steps:
 
+    # ------------------------------------
+    # 1. CHECKOUT REPO
+    # ------------------------------------
     - name: Checkout repo
       uses: actions/checkout@v4
       with:
-        fetch-depth: 0
+        fetch-depth: 0   # required so git push works
 
+    # ------------------------------------
+    # 2. BUILD DOCKER IMAGE
+    # ------------------------------------
     - name: Build Docker image
       run: docker build -t mlops-clean .
 
+    # ------------------------------------
+    # 3. RUN DVC PIPELINE IN DOCKER
+    # ------------------------------------
     - name: Run DVC pipeline inside Docker
       env:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+
         DAGSHUB_USERNAME: ${{ secrets.DAGSHUB_USERNAME }}
         DAGSHUB_TOKEN: ${{ secrets.DAGSHUB_TOKEN }}
         DAGSHUB_REPO_OWNER: ${{ secrets.DAGSHUB_REPO_OWNER }}
@@ -39,12 +49,12 @@ jobs:
           -e DAGSHUB_REPO_OWNER="$DAGSHUB_REPO_OWNER" \
           -e DAGSHUB_REPO_NAME="$DAGSHUB_REPO_NAME" \
           -v "${{ github.workspace }}:/app" \
+          -v "${{ github.workspace }}/.dvc/cache:/app/.dvc/cache" \
           mlops-clean
 
-    # -------------------------------------
-    # Commit DVC changes back to GitHub
-    # -------------------------------------
-
+    # ------------------------------------
+    # 4. COMMIT DVC CHANGES BACK TO GITHUB
+    # ------------------------------------
     - name: Configure Git
       run: |
         git config --global user.email "actions@github.com"

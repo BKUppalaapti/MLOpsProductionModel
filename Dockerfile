@@ -35,10 +35,4 @@ COPY . .
 # --------------------------------------------------------
 # 6. Run DVC pipeline
 # --------------------------------------------------------
-CMD bash -c "
-  git config --global user.email 'actions@github.com' &&
-  git config --global user.name 'GitHub Actions' &&
-  dvc repro &&
-  git add dvc.lock .dvc/cache -A || true &&
-  git commit -m 'Auto: Pipeline run inside Docker' || true
-"
+CMD ["dvc", "repro", "-v"]
