@@ -35,4 +35,4 @@ COPY . .
 # --------------------------------------------------------
 # 6. Run DVC pipeline
 # --------------------------------------------------------
-CMD ["bash", "-c", "dvc repro -v && dvc push -v"]
+CMD ["bash", "-c", "dvc remote default s3remote && dvc repro -v && dvc push -v"]
