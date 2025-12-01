@@ -71,7 +71,7 @@ jobs:
 
     - name: Commit DVC updates
       run: |
-        git add dvc.lock .dvc/cache -A || true
+        git add dvc.lock || true
         git commit -m "Auto: Update DVC pipeline outputs [CI]" || echo "No changes to commit"
 
     - name: Push changes back to GitHub
