@@ -50,7 +50,8 @@ jobs:
           -e DAGSHUB_REPO_NAME="$DAGSHUB_REPO_NAME" \
           -v "${{ github.workspace }}:/app" \
           -v "${{ github.workspace }}/.dvc/cache:/app/.dvc/cache" \
-          mlops-clean
+          mlops-clean \
+            /bin/bash -c "dvc repro -v && dvc push -v"
 
     # ------------------------------------
     # 4. COMMIT DVC CHANGES BACK TO GITHUB
